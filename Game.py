@@ -28,6 +28,11 @@ class Hand():
             self.this_hand[die].print_number()
             tot += self.this_hand[die].number
         print "Tot %4d" % tot
+
+class Game():
+
+    def __init__(self):
+        self.score = 0.0
         
         
 if __name__ == '__main__':
