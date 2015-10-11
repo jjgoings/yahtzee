@@ -3,8 +3,13 @@ import numpy as np
 from random import randint
 
 class State():
-    def __init__(self,nstates=6):
+    def __init__(self,nstates=6,maxTurn=3):
+        # game info
+        self.curTurn = 0
+        self.maxTurn = maxTurn
         self.nstates = nstates
+ 
+        # Markov states and TX matrices 
         self.Vec     = np.eye(self.nstates,1)
         self.TRoll   = (1.0/self.nstates)*np.ones((self.nstates,self.nstates))
         self.THold   = np.eye(self.nstates,self.nstates)
@@ -13,7 +18,6 @@ class State():
             ScoreMatrix[:,i] = (i+1)*np.ones((self.nstates))
         self.ScoreMat = ScoreMatrix
         self.score = np.dot(self.Vec.T,np.dot(self.ScoreMat,self.Vec))
-        self.curRoll = 0
 
     def evalScore(self,action='Hold'):
         if action == 'Hold':
@@ -27,9 +31,10 @@ class State():
         k = randint(0,self.nstates-1)
         self.Vec     = np.eye(self.nstates,1,-k)
         self.score = np.dot(self.Vec.T,np.dot(self.ScoreMat,self.Vec))
+        self.curTurn += 1
 
     def play(self):
-        if self.curRoll == 0:
+        if self.curTurn == 0:
             self.roll()
         scoreHold = self.evalScore('Hold')
         scoreRoll = self.evalScore('Roll')
