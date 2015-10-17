@@ -59,28 +59,37 @@ class State:
     def reward_vec(self,number):
         return number*np.eye(1,self.num_faces,number)
 
+    def count_vec(self,number):
+        return np.eye(1,self.num_faces,number)
+
     def populate_expected_outcome(self):
         for face in xrange(self.num_faces): 
-            outcome = self.num_dice*self.probability()*(face+1)
+            outcome = self.num_dice*self.probability()
             self.expected_outcome.append(outcome)
 
     def choose_strategy(self):
-        best_outcome = 0.0
+        max_rarity = 0.0
         best_strategy = 0
+        best_outcome = 0.0
+#        for strategy in self.available_strategies:
+#            for idx, state in enumerate(self.possible_states):
+#                reward = np.sum(np.dot(self.reward_vec(strategy),state))
+#                if reward > best_outcome:
+#                    best_outcome = reward
+#                    best_strategy = strategy + 1
+#                    best_action = self.permutations[idx]
         for strategy in self.available_strategies:
             for idx, state in enumerate(self.possible_states):
+                number = np.sum(np.dot(self.count_vec(strategy),state))
                 reward = np.sum(np.dot(self.reward_vec(strategy),state))
-                #if reward > best_outcome:
-                if reward > self.expected_outcome[strategy]:
-                    if reward > best_outcome:
-                        best_outcome = reward
-                        best_strategy = strategy + 1
-                        best_action = self.permutations[idx]
-#                else:
-#                    if reward > best_outcome:
-#                        best_outcome = reward
-#                        best_strategy = strategy + 1
-#                        best_action = self.permutations[idx]
+                if number > self.expected_outcome[strategy]:
+                    rarity = number - self.expected_outcome[strategy]
+                    if rarity >= max_rarity:
+                        max_rarity = rarity
+                        if reward > best_outcome:
+                            best_outcome = reward
+                            best_strategy = strategy + 1
+                            best_action = self.permutations[idx]
         print "You could expect a score of: ", best_outcome
         print "If you go for your: ", best_strategy
         print "So hold/roll these: ", best_action
@@ -94,7 +103,6 @@ if __name__ == '__main__':
    my_hand.roll_all()
    my_hand.enumerate_states()
    print my_hand.state_matrix
-   print my_hand.expected_outcome
    print "You have %s rolls left" % my_hand.rolls_left
    my_hand.choose_strategy()
    
