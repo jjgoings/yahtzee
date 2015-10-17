@@ -2,6 +2,8 @@ from __future__ import division
 import numpy as np
 import itertools
 from numpy.random import randint
+from scipy.special import binom
+from math import factorial
 
 """
     Currently, attempts to tell you whether you should
@@ -23,8 +25,10 @@ class State:
         self.state_matrix = np.zeros((self.num_faces,self.num_dice))
         self.permutations = list(itertools.product('HR',repeat=self.num_dice))
         self.possible_states = []
+        self.rolls_left  = 3
+        self.expected_outcome = []
         self.available_strategies = range(0,self.num_faces)
-        self.reward_ones = np.eye(self.num_faces,1)
+        self.populate_expected_outcome()
 
     def roll(self,dice):
         I = randint(0,self.num_faces)
@@ -34,6 +38,11 @@ class State:
     def roll_all(self):
         for dice in xrange(self.num_dice):
             self.roll(dice)
+        self.rolls_left -= 1
+
+    def probability(self):
+        prob_not = 1.0 - 1.0/self.num_faces
+        return 1.0 - np.power(prob_not,self.rolls_left)
 
     def enumerate_states(self):
         current_state = np.copy(self.state_matrix)
@@ -41,7 +50,7 @@ class State:
         for permutation in self.permutations:
             for idx, action in enumerate(permutation):
                 if action == 'R':
-                   probability = 1.0/self.num_faces
+                   probability = self.probability()
                    current_state[:,idx] = probability
                 # no else, cause we do nothing for hold!
             self.possible_states.append(current_state)
@@ -50,17 +59,31 @@ class State:
     def reward_vec(self,number):
         return number*np.eye(1,self.num_faces,number)
 
+    def populate_expected_outcome(self):
+        for face in xrange(self.num_faces): 
+            outcome = self.num_dice*self.probability()*(face+1)
+            self.expected_outcome.append(outcome)
+
     def choose_strategy(self):
         best_outcome = 0.0
         best_strategy = 0
         for strategy in self.available_strategies:
             for idx, state in enumerate(self.possible_states):
                 reward = np.sum(np.dot(self.reward_vec(strategy),state))
-                if reward > best_outcome:
-                    best_outcome = reward
-                    best_strategy = strategy + 1
-                    best_action = self.permutations[idx]
-        print best_outcome, best_strategy, best_action
+                #if reward > best_outcome:
+                if reward > self.expected_outcome[strategy]:
+                    if reward > best_outcome:
+                        best_outcome = reward
+                        best_strategy = strategy + 1
+                        best_action = self.permutations[idx]
+#                else:
+#                    if reward > best_outcome:
+#                        best_outcome = reward
+#                        best_strategy = strategy + 1
+#                        best_action = self.permutations[idx]
+        print "You could expect a score of: ", best_outcome
+        print "If you go for your: ", best_strategy
+        print "So hold/roll these: ", best_action
             
                 
 
@@ -71,6 +94,8 @@ if __name__ == '__main__':
    my_hand.roll_all()
    my_hand.enumerate_states()
    print my_hand.state_matrix
+   print my_hand.expected_outcome
+   print "You have %s rolls left" % my_hand.rolls_left
    my_hand.choose_strategy()
    
 
