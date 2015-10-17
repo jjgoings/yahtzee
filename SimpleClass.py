@@ -26,7 +26,7 @@ from numpy.random import randint
 """
 
 
-class Game:
+class Dice:
 
 
     def __init__(self,num_faces=6,num_turns=3):
@@ -77,17 +77,27 @@ class Game:
          
                
 if __name__ == '__main__':
-    num_games = 1000
+    num_games = 1000000
     score = 0.0
-    # Game(num_faces,num_rolls)
-    my_game = Game(6,3)
-    for game in range(num_games):
-        current_score = my_game.play_game() 
-        score += current_score
-    
+    num_dice = 1
+    num_faces = 6
+    num_rolls = 2
+    Hand = []
+    # Dice(num_faces,num_rolls)
+    for dice in xrange(num_dice):
+        Hand.append(Dice(num_faces,num_rolls))
+    for game in xrange(num_games):
+        for dice in enumerate(Hand):
+            score += dice[1].play_game()
+
+        if (game != 0 and game % 10000 == 0):
+            avg_score = score/(game+1) 
+            print game, avg_score
+            
     avg_score = score/num_games    
     
-    print avg_score
+    print num_games, avg_score
+    
     
     
 
