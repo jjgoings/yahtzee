@@ -8,6 +8,10 @@ from numpy.random import randint
       hold or roll your dice in an attempt to maximize
       the expected value of a strategy-based reward
 
+    Unfortunately, the algorithm is greedy and only looks
+      to maximize *immediate* gains, not looking to what
+      stategy maximizes overall score
+
 """
 
 
@@ -19,6 +23,7 @@ class State:
         self.state_matrix = np.zeros((self.num_faces,self.num_dice))
         self.permutations = list(itertools.product('HR',repeat=self.num_dice))
         self.possible_states = []
+        self.available_strategies = range(0,self.num_faces)
         self.reward_ones = np.eye(self.num_faces,1)
 
     def roll(self,dice):
@@ -41,27 +46,31 @@ class State:
                 # no else, cause we do nothing for hold!
             self.possible_states.append(current_state)
             current_state = np.copy(self.state_matrix)
+
+    def reward_vec(self,number):
+        return number*np.eye(1,self.num_faces,number)
+
+    def choose_strategy(self):
+        best_outcome = 0.0
+        best_strategy = 0
+        for strategy in self.available_strategies:
+            for idx, state in enumerate(self.possible_states):
+                reward = np.sum(np.dot(self.reward_vec(strategy),state))
+                if reward > best_outcome:
+                    best_outcome = reward
+                    best_strategy = strategy + 1
+                    best_action = self.permutations[idx]
+        print best_outcome, best_strategy, best_action
+            
                 
 
 
 if __name__ == '__main__':
 
-
    my_hand = State()
    my_hand.roll_all()
-
-   my_hand.state_matrix = np.zeros((my_hand.num_faces,my_hand.num_dice))
-   my_hand.state_matrix[0,:] = 1.0
-
    my_hand.enumerate_states()
-   rewards = []
-   for state in my_hand.possible_states:
-       rewards.append(np.sum(np.dot(my_hand.reward_ones.T,state)))
- 
-   idx = np.argmax(rewards)       
    print my_hand.state_matrix
-   print my_hand.permutations[idx]
-   print my_hand.possible_states[idx]
-   print max(rewards)
+   my_hand.choose_strategy()
    
 
