@@ -2,6 +2,7 @@ import numpy as np
 import collections
 import itertools
 
+
 three_combos = (list(itertools.product('123456',repeat=3)))
 
 hands = []
